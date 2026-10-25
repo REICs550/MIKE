@@ -2,7 +2,7 @@ import { DEFAULTS, DEFAULT_FINISH, PARAMS, clampParam, isPartKind } from "./cata
 import { partMass } from "./measure";
 import type { Finish, Part, Project } from "./types";
 
-const STORAGE_KEY = "mike-cad-v1";
+const STORAGE_KEY = "mike-cad-v2";
 
 export function serializeProject(project: Project): string {
   return JSON.stringify({ format: "mike-cad", version: 1, project }, null, 2);

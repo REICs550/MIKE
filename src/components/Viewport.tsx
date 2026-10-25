@@ -70,7 +70,13 @@ function CameraRig() {
     const bounds = projectBounds(projectRef.current.parts);
     const [cx, cy, cz] = bounds.center;
     const radius = Math.max(bounds.size[0], bounds.size[1], bounds.size[2], 900);
-    const dist = radius * (ui.view === "persp" ? 1.05 : 1.35);
+    const dist = radius * (ui.view === "persp" ? 1.15 : 1.45);
+    if (camera instanceof THREE.PerspectiveCamera) {
+      camera.near = 5;
+      camera.far = 250000;
+      camera.fov = ui.view === "persp" ? 32 : 22;
+      camera.updateProjectionMatrix();
+    }
     const dirs: Record<ViewMode, [number, number, number]> = {
       persp: [0.9, 0.46, 1.05],
       front: [0, 0.06, 1],
@@ -243,11 +249,11 @@ function Scene() {
       <Backdrop />
       <CameraRig />
       <CursorReadout />
-      <hemisphereLight args={["#d5e2ef", "#2a241e", 0.72]} />
-      <ambientLight intensity={0.28} />
+      <hemisphereLight args={["#d5e2ef", "#2a241e", 0.9]} />
+      <ambientLight intensity={0.42} />
       <directionalLight
         position={[2400, 4200, 1800]}
-        intensity={2.6}
+        intensity={1.55}
         color={"#fff3e6"}
         castShadow
         shadow-mapSize-width={2048}
@@ -315,10 +321,12 @@ export function Viewport() {
     <div className="viewport">
       <Canvas
         shadows
-        gl={{ antialias: true, localClippingEnabled: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.12 }}
+        camera={{ fov: 32, near: 5, far: 250000, position: [3600, 1700, 4600] }}
+        gl={{ antialias: true, localClippingEnabled: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
         onPointerMissed={() => clearSelect()}
         onCreated={({ gl }) => {
           gl.shadowMap.type = THREE.PCFSoftShadowMap;
+          gl.setClearColor("#1a1e24");
         }}
       >
         <Scene />

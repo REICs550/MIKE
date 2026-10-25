@@ -56,7 +56,7 @@ const SPECS: Record<"coupe" | "sedan" | "truck", Spec> = {
     rearGlass: 27,
     engine: 2,
     paint: preset("Rosso"),
-    rimFinish: preset("Graphite"),
+    rimFinish: preset("Silver"),
     caliper: preset("Ceramic"),
   },
   sedan: {
@@ -192,7 +192,7 @@ function buildVehicle(spec: Spec): Project {
     ),
   );
 
-  const paint = spec.paint;
+  const paint = { ...spec.paint, metalness: 0.2, roughness: 0.4, clearcoat: 0.55 };
   const black = preset("Satin");
   const wheelParams = { rim: spec.rim, width: spec.tire, aspect: spec.aspect, offset: spec.style === "truck" ? 25 : 40, spokes: spec.spokes, lip: spec.style === "truck" ? 10 : 15 };
 
@@ -226,13 +226,13 @@ function buildVehicle(spec: Spec): Project {
   const hoodFront = nose - 80;
   const hoodRear = cowlZ + 16;
   const hoodLen = hoodFront - hoodRear;
-  const hoodFrontY = spec.belt - (spec.style === "truck" ? 40 : 90);
+  const hoodFrontY = spec.belt - (spec.style === "truck" ? 50 : 150);
   const hoodRearY = spec.belt + 8;
   push(
     makePart(
       "hood",
       "Hood",
-      { length: hoodLen, width: spec.width * 0.7, rake: hoodRearY - hoodFrontY, crown: spec.style === "truck" ? 12 : 24, thickness: 8 },
+      { length: hoodLen, width: spec.width - 20, rake: hoodRearY - hoodFrontY, crown: spec.style === "truck" ? 12 : 22, thickness: 8 },
       identityXform({ y: (hoodFrontY + hoodRearY) / 2, z: (hoodFront + hoodRear) / 2 }),
       paint,
     ),
@@ -285,7 +285,7 @@ function buildVehicle(spec: Spec): Project {
     makePart(
       "roof",
       "Roof",
-      { length: roofLen + 30, width: spec.width * (spec.style === "truck" ? 0.78 : 0.7), crown: spec.style === "truck" ? 16 : 26, thickness: 6 },
+      { length: roofLen + 40, width: spec.width * (spec.style === "truck" ? 0.86 : 0.86), crown: spec.style === "truck" ? 16 : 22, thickness: 6 },
       identityXform({ y: spec.roof, z: (roofFrontZ + roofRearZ) / 2 }),
       paint,
     ),
@@ -296,13 +296,13 @@ function buildVehicle(spec: Spec): Project {
     makePart(
       "glass",
       "Windshield",
-      { style: 0, mirror: 0, width: spec.width * 0.66, length: windLen, angle: spec.windshield, bulge: spec.style === "truck" ? 4 : 12, thickness: 5 },
+      { style: 0, mirror: 0, width: spec.width * 0.78, length: windLen, angle: spec.windshield, bulge: spec.style === "truck" ? 4 : 10, thickness: 5 },
       identityXform({ y: (spec.belt + spec.roof) / 2, z: roofFrontZ + run / 2 }),
       glassFinish(),
     ),
   );
 
-  const deckH = spec.style === "truck" ? spec.belt - 80 : spec.belt - 16;
+  const deckH = spec.style === "truck" ? spec.belt - 60 : spec.belt - 50;
   const rearRise = spec.roof - deckH;
   const rearRun = rearRise / Math.tan((spec.rearGlass * Math.PI) / 180);
   const rearLen = Math.hypot(rearRun, rearRise);
@@ -310,7 +310,7 @@ function buildVehicle(spec: Spec): Project {
     makePart(
       "glass",
       "Rear glass",
-      { style: 0, mirror: 0, width: spec.width * (spec.style === "truck" ? 0.62 : 0.58), length: rearLen, angle: spec.rearGlass, bulge: 6, thickness: 5 },
+      { style: 0, mirror: 0, width: spec.width * (spec.style === "truck" ? 0.7 : 0.72), length: rearLen, angle: spec.rearGlass, bulge: 6, thickness: 5 },
       identityXform({ y: (spec.roof + deckH) / 2, z: roofRearZ - rearRun / 2, ry: 180 }),
       glassFinish(),
     ),
@@ -324,7 +324,7 @@ function buildVehicle(spec: Spec): Project {
     const qZ = (qFront + qRear) / 2;
     const qParams = {
       length: qLen,
-      top: spec.style === "coupe" ? spec.roof - wheelR - 90 : spec.belt - wheelR + 80,
+      top: spec.style === "coupe" ? spec.roof - wheelR - 30 : spec.belt - wheelR + 120,
       arch: wheelR + 32,
       archZ: rearZ - qZ,
       flare: spec.style === "coupe" ? 26 : 14,
@@ -342,7 +342,7 @@ function buildVehicle(spec: Spec): Project {
       makePart(
         "decklid",
         "Decklid",
-        { length: deckLen, width: spec.width * 0.72, rake: spec.style === "coupe" ? 36 : 16, crown: 14, thickness: 6 },
+        { length: deckLen, width: spec.width - 80, rake: spec.style === "coupe" ? 28 : 12, crown: 12, thickness: 6 },
         identityXform({ y: deckH, z: (deckFront + deckRear) / 2 }),
         paint,
       ),
@@ -386,30 +386,34 @@ function buildVehicle(spec: Spec): Project {
     const bedRear = tail + 80;
     const bedLen = bedFront - bedRear;
     const bedZ = (bedFront + bedRear) / 2;
-    const floorY = wheelR + 70;
+    const floorY = spec.rocker + 30;
     push(
       makePart(
         "bed",
         "Pickup bed",
-        { length: bedLen, width: spec.width - 30, side: 460, arch: wheelR * 0.72, archZ: rearZ - bedZ },
+        { length: bedLen, width: spec.width - 20, side: 520, arch: wheelR * 0.62, archZ: rearZ - bedZ },
         identityXform({ y: floorY, z: bedZ }),
         paint,
       ),
     );
   }
 
-  const bumperH = spec.style === "truck" ? 360 : 230;
-  const bumperD = spec.style === "truck" ? 110 : 80;
-  push(makePart("bumper", "Front bumper", { width: spec.width - 10, height: bumperH, depth: bumperD, crown: 46, thickness: 12 }, identityXform({ y: spec.rocker + bumperH * 0.15, z: nose - 36 }), paint));
-  push(makePart("bumper", "Rear bumper", { width: spec.width - 30, height: bumperH * 0.85, depth: bumperD, crown: 36, thickness: 12 }, identityXform({ y: spec.rocker + 10, z: tail + 36, ry: 180 }), paint));
+  const bumperH = spec.style === "truck" ? 420 : 320;
+  const bumperTop = spec.style === "truck" ? spec.rocker + 520 : hoodFrontY - 210;
+  const bumperD = spec.style === "truck" ? 120 : 90;
+  push(makePart("bumper", "Front bumper", { width: spec.width - 8, height: bumperH, depth: bumperD, crown: 70, thickness: 14 }, identityXform({ y: bumperTop - bumperH / 2, z: nose - 30 }), paint));
+  const rearH = spec.style === "truck" ? 300 : 240;
+  const rearTop = spec.style === "truck" ? spec.rocker + 280 : deckH - 20;
+  push(makePart("bumper", "Rear bumper", { width: spec.width - 16, height: rearH, depth: bumperD, crown: 50, thickness: 14 }, identityXform({ y: rearTop - rearH / 2, z: tail + 28, ry: 180 }), paint));
 
-  push(makePart("grille", "Grille", { width: spec.width * (spec.style === "truck" ? 0.42 : 0.34), height: spec.style === "truck" ? 220 : 150, slats: spec.style === "truck" ? 4 : 6, depth: 28 }, identityXform({ y: spec.rocker + (spec.style === "truck" ? 250 : 150), z: nose - 8 }), black));
+  const grilleH = spec.style === "truck" ? 260 : Math.max(120, hoodFrontY - bumperTop - 10);
+  push(makePart("grille", "Grille", { width: spec.width * (spec.style === "truck" ? 0.46 : 0.38), height: grilleH, slats: spec.style === "truck" ? 4 : 5, depth: 36 }, identityXform({ y: (bumperTop + hoodFrontY) / 2, z: nose - 6 }), black));
 
-  const lampY = spec.belt - (spec.style === "truck" ? 20 : 70);
-  const lampX = spec.width * 0.31;
-  push(makePart("headlight", "Right headlight", { width: spec.style === "truck" ? 240 : 300, height: spec.style === "truck" ? 110 : 84, depth: 70 }, identityXform({ x: lampX, y: lampY, z: nose - 20 })));
-  push(makePart("headlight", "Left headlight", { width: spec.style === "truck" ? 240 : 300, height: spec.style === "truck" ? 110 : 84, depth: 70 }, identityXform({ x: -lampX, y: lampY, z: nose - 20 })));
-  const tailY = (spec.style === "truck" ? wheelR + 280 : spec.belt - 90);
+  const lampY = hoodFrontY - (spec.style === "truck" ? 40 : 70);
+  const lampX = half - (spec.style === "truck" ? 280 : 250);
+  push(makePart("headlight", "Right headlight", { width: spec.style === "truck" ? 260 : 280, height: spec.style === "truck" ? 120 : 90, depth: 80 }, identityXform({ x: lampX, y: lampY, z: nose - 12 })));
+  push(makePart("headlight", "Left headlight", { width: spec.style === "truck" ? 260 : 280, height: spec.style === "truck" ? 120 : 90, depth: 80 }, identityXform({ x: -lampX, y: lampY, z: nose - 12 })));
+  const tailY = spec.style === "truck" ? spec.rocker + 220 : deckH - 70;
   push(makePart("taillight", "Right taillight", { width: 250, height: 72, depth: 36 }, identityXform({ x: lampX, y: tailY, z: tail + 18, ry: 180 })));
   push(makePart("taillight", "Left taillight", { width: 250, height: 72, depth: 36 }, identityXform({ x: -lampX, y: tailY, z: tail + 18, ry: 180 })));
 
